@@ -58,7 +58,7 @@ class WeatherServiceTest {
 
     @Test
     void testGetExistingWeather() {
-        String pincode = "12345";
+        String pincode = "123456";
         LocalDate date = LocalDate.of(2025, 3, 22);
         WeatherInfo weatherInfo = new WeatherInfo(pincode, date, null);
 
@@ -74,7 +74,7 @@ class WeatherServiceTest {
 
     @Test
     void testGetPincodeInfo() {
-        String pincode = "12345";
+        String pincode = "123456";
         PincodeInfo pincodeInfo = new PincodeInfo(pincode, 12.34, 56.78, "Country", "City");
 
         when(pincodeRepository.findById(pincode)).thenReturn(Optional.of(pincodeInfo));
@@ -89,11 +89,11 @@ class WeatherServiceTest {
 
     @Test
     void testFetchAndSavePincodeInfo() throws URISyntaxException, JsonProcessingException {
-        String pincode = "12345";
-        String jsonResponse = "{\"zip\":\"12345\",\"lat\":12.34,\"lon\":56.78,\"name\":\"City\",\"country\":\"Country\"}";
+        String pincode = "123456";
+        String jsonResponse = "{\"zip\":\"123456\",\"lat\":12.34,\"lon\":56.78,\"name\":\"City\",\"country\":\"Country\"}";
 
         ResponseEntity<String> response = ResponseEntity.ok(jsonResponse);
-        when(restTemplate.getForEntity("https://api.openweathermap.org/geo/1.0/zip?zip=12345,in&appid=f26ffc0a115e905e9efd6b9efb493cf4", String.class)).thenReturn(response);
+        when(restTemplate.getForEntity("https://api.openweathermap.org/geo/1.0/zip?zip=123456,in&appid=f26ffc0a115e905e9efd6b9efb493cf4", String.class)).thenReturn(response);
 
         PincodeInfo expectedPincodeInfo = new PincodeInfo(pincode, 12.34, 56.78, "Country", "City");
         when(pincodeRepository.save(any(PincodeInfo.class))).thenReturn(expectedPincodeInfo);
@@ -110,7 +110,7 @@ class WeatherServiceTest {
 
     @Test
     void testFetchAndSaveWeather() throws Exception {
-        String pincode = "12345";
+        String pincode = "123456";
         LocalDate date = LocalDate.of(2025, 3, 29);
         double lat = 12.34;
         double lon = 56.78;

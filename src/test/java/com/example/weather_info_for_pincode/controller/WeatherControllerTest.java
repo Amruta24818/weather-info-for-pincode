@@ -24,16 +24,13 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 class WeatherControllerTest {
 
-    @Mock
-    private IWeatherService weatherService;
-
-    @InjectMocks
-    private WeatherController weatherController;
-
-    private final String pincode = "12345";
+    private final String pincode = "123456";
     private final String date = "2025-03-29";
     private final LocalDate requestedDate = LocalDate.parse(date);
-
+    @Mock
+    private IWeatherService weatherService;
+    @InjectMocks
+    private WeatherController weatherController;
     private WeatherInfo weatherInfo;
     private PincodeInfo pincodeInfo;
     private JsonNode weatherData;
@@ -42,7 +39,6 @@ class WeatherControllerTest {
     void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
-        // Setup mock objects
         ObjectMapper objectMapper = new ObjectMapper();
         weatherData = objectMapper.readTree("{\"temp\": 72.5, \"description\": \"Sunny\"}");
 
