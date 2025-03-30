@@ -28,13 +28,15 @@ public class WeatherService implements IWeatherService{
     private PincodeRepository pincodeRepository;
 
 
-    @Value("${api.key}")
+    @Value("${GEOCODE_API_URL}")
     private String GEOCODE_API_URL;
+//    private String GEOCODE_API_URL = "https://api.openweathermap.org/data/2.5/weather?zip=%s&appid=f26ffc0a115e905e9efd6b9efb493cf4";
 
-    @Value("${WEATHER_API_URL.key }")
+    @Value("${WEATHER_API_URL}")
     private String WEATHER_API_URL;
+//    private String WEATHER_API_URL="https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/%s,%s/%s?key=F4E7XSQ24EUQGSS7E745FZFVL";
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate = new RestTemplate();
 
     public Optional<WeatherInfo> getExistingWeather(String pincode, LocalDate date) {
         return weatherRepository.findByPincodeAndDate(pincode, date);
@@ -82,7 +84,7 @@ public class WeatherService implements IWeatherService{
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             System.out.println(response.getBody());
             ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode weatherData = objectMapper.readTree(response.getBody());// Convert raw JSON string to JsonNode
+            JsonNode weatherData = objectMapper.readTree(response.getBody());
             WeatherInfo weather = new WeatherInfo(pincode, date, weatherData);
             weatherRepository.save(weather);
             return weather;

@@ -22,6 +22,10 @@ public class WeatherController {
     @Autowired
     private IWeatherService weatherService;
 
+    public WeatherController(IWeatherService weatherService) {
+        this.weatherService = weatherService;
+    }
+
     @GetMapping(value = "/{pincode}/{date}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WeatherInfo> getWeather(@PathVariable String pincode, @PathVariable String date) {
         LocalDate requestedDate = LocalDate.parse(date);
@@ -42,6 +46,10 @@ public class WeatherController {
 
         PincodeInfo pincodeData = pincodeInfo.get();
         WeatherInfo weather = weatherService.fetchAndSaveWeather(pincode, requestedDate, pincodeData.getLatitude(), pincodeData.getLongitude());
+
+        if (weather == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
         return new ResponseEntity<>(weather, HttpStatus.OK);
     }
