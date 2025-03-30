@@ -3,10 +3,15 @@ package com.example.weather_info_for_pincode.controller;
 import com.example.weather_info_for_pincode.model.PincodeInfo;
 import com.example.weather_info_for_pincode.model.WeatherInfo;
 import com.example.weather_info_for_pincode.service.IWeatherService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,13 +22,14 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/weather")
+@Validated
 public class WeatherController {
 
     @Autowired
     private IWeatherService weatherService;
 
     @GetMapping(value = "/{pincode}/{date}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<WeatherInfo> getWeather(@PathVariable String pincode, @PathVariable String date) {
+    public ResponseEntity<WeatherInfo> getWeather(@PathVariable @Valid @NotBlank @Size(max = 6,min = 6) String pincode, @PathVariable @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "Date must be in the format yyyy-mm-dd") String date) {
         LocalDate requestedDate = LocalDate.parse(date);
 
         Optional<WeatherInfo> existingWeather = weatherService.getExistingWeather(pincode, requestedDate);
