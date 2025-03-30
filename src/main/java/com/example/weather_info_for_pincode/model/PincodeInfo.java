@@ -2,16 +2,21 @@ package com.example.weather_info_for_pincode.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class PincodeInfo {
 
     @Id
     private String pincode;
+    @NotNull
     private Double latitude;
+    @NotNull
     private Double longitude;
-
+    @NotBlank
     private String country;
+    @NotBlank
     private String city;
 
     public PincodeInfo() {}

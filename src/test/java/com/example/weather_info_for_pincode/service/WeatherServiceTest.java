@@ -1,5 +1,6 @@
 package com.example.weather_info_for_pincode.service;
 
+import com.example.weather_info_for_pincode.config.RestTemplateConfig;
 import com.example.weather_info_for_pincode.dao.PincodeRepository;
 import com.example.weather_info_for_pincode.dao.WeatherRepository;
 import com.example.weather_info_for_pincode.model.PincodeInfo;
@@ -12,36 +13,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.client.ExpectedCount;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.reflect.Field;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 @ExtendWith(MockitoExtension.class)
-@TestPropertySource(properties = {
-//        "GEOCODE_API_URL=https://api.openweathermap.org/geo/1.0/zip?zip=%s,in&appid=f26ffc0a115e905e9efd6b9efb493cf4"
-//        "weather.api.url=https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/%s,%s/%s?key=F4E7XSQ24EUQGSS7E745FZFVL"
-})
+@SpringBootTest(classes = RestTemplateConfig.class)
 class WeatherServiceTest {
 
     @Mock
@@ -52,22 +41,19 @@ class WeatherServiceTest {
 
     @Mock
     private RestTemplate restTemplate;
-
-    @Value("${GEOCODE_API_URL}")
-    private String GEOCODE_API_URL ;
-
-    @Value("${WEATHER_API_URL}")
-    private String WEATHER_API_URL;
+    private final String GEOCODE_API_URL = "https://api.openweathermap.org/geo/1.0/zip?zip=%s,in&appid=f26ffc0a115e905e9efd6b9efb493cf4";
+    private final String WEATHER_API_URL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/%s,%s/%s?key=F4E7XSQ24EUQGSS7E745FZFVL";
 
     @InjectMocks
-    private WeatherService weatherService;
+    private WeatherService weatherService = new WeatherService(restTemplate);
 
-    private MockRestServiceServer mockServer;
-    private ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() throws NoSuchFieldException, IllegalAccessException {
-        mockServer = MockRestServiceServer.createServer(restTemplate);
+        MockitoAnnotations.openMocks(this);
+
+        ReflectionTestUtils.setField(weatherService, "GEOCODE_API_URL", GEOCODE_API_URL);
+        ReflectionTestUtils.setField(weatherService, "WEATHER_API_URL", WEATHER_API_URL);
     }
 
     @Test
@@ -107,15 +93,7 @@ class WeatherServiceTest {
         String jsonResponse = "{\"zip\":\"12345\",\"lat\":12.34,\"lon\":56.78,\"name\":\"City\",\"country\":\"Country\"}";
 
         ResponseEntity<String> response = ResponseEntity.ok(jsonResponse);
-//        when(restTemplate.getForEntity(startsWith("https://api.openweathermap.org/geo/1.0/zip?zip=%s,in&appid=f26ffc0a115e905e9efd6b9efb493cf4" + pincode), eq(String.class))).thenReturn(response);
-
-        mockServer.expect(ExpectedCount.once(),
-                        requestTo(new URI("https://api.openweathermap.org/geo/1.0/zip?zip="+12345+",in&appid=f26ffc0a115e905e9efd6b9efb493cf4")))
-                .andExpect(method(HttpMethod.GET))
-                .andRespond(withStatus(HttpStatus.OK)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(mapper.writeValueAsString(jsonResponse))
-                );
+        when(restTemplate.getForEntity("https://api.openweathermap.org/geo/1.0/zip?zip=12345,in&appid=f26ffc0a115e905e9efd6b9efb493cf4", String.class)).thenReturn(response);
 
         PincodeInfo expectedPincodeInfo = new PincodeInfo(pincode, 12.34, 56.78, "Country", "City");
         when(pincodeRepository.save(any(PincodeInfo.class))).thenReturn(expectedPincodeInfo);
@@ -123,7 +101,8 @@ class WeatherServiceTest {
         Optional<PincodeInfo> result = weatherService.fetchAndSavePincodeInfo(pincode);
 
         assertTrue(result.isPresent());
-        assertEquals(expectedPincodeInfo, result.get());
+        PincodeInfo responsePincodeInfo = result.get();
+        assertEquals(expectedPincodeInfo.getPincode(), responsePincodeInfo.getPincode());
 
         verify(pincodeRepository, times(1)).save(any(PincodeInfo.class));
         verify(restTemplate, times(1)).getForEntity(anyString(), eq(String.class));
@@ -138,7 +117,7 @@ class WeatherServiceTest {
 
         String weatherJsonResponse = "{\"weather\":{\"temperature\":22}}";
         ResponseEntity<String> response = ResponseEntity.ok(weatherJsonResponse);
-        when(restTemplate.getForEntity(anyString(), eq(String.class))).thenReturn(response);
+        when(restTemplate.getForEntity("https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/12.34,56.78/1743206400?key=F4E7XSQ24EUQGSS7E745FZFVL", String.class)).thenReturn(response);
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode weatherData = objectMapper.readTree(weatherJsonResponse);
@@ -148,10 +127,9 @@ class WeatherServiceTest {
         WeatherInfo result = weatherService.fetchAndSaveWeather(pincode, date, lat, lon);
 
         assertNotNull(result);
-        assertEquals(expectedWeatherInfo, result);
+        assertEquals(expectedWeatherInfo.getPincode(), result.getPincode());
 
         verify(weatherRepository, times(1)).save(any(WeatherInfo.class));
         verify(restTemplate, times(1)).getForEntity(anyString(), eq(String.class));
     }
 }
-

@@ -27,16 +27,17 @@ public class WeatherService implements IWeatherService{
     @Autowired
     private PincodeRepository pincodeRepository;
 
+    private RestTemplate restTemplate = new RestTemplate();
+
+    public WeatherService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @Value("${GEOCODE_API_URL}")
     private String GEOCODE_API_URL;
-//    private String GEOCODE_API_URL = "https://api.openweathermap.org/data/2.5/weather?zip=%s&appid=f26ffc0a115e905e9efd6b9efb493cf4";
 
     @Value("${WEATHER_API_URL}")
     private String WEATHER_API_URL;
-//    private String WEATHER_API_URL="https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/%s,%s/%s?key=F4E7XSQ24EUQGSS7E745FZFVL";
-
-    private RestTemplate restTemplate = new RestTemplate();
 
     public Optional<WeatherInfo> getExistingWeather(String pincode, LocalDate date) {
         return weatherRepository.findByPincodeAndDate(pincode, date);

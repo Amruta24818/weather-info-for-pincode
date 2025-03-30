@@ -1,6 +1,4 @@
 package com.example.weather_info_for_pincode.controller;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.weather_info_for_pincode.model.PincodeInfo;
 import com.example.weather_info_for_pincode.model.WeatherInfo;
@@ -9,11 +7,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.springframework.http.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import java.time.LocalDate;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class WeatherControllerTest {
@@ -24,9 +30,9 @@ class WeatherControllerTest {
     @InjectMocks
     private WeatherController weatherController;
 
-    private String pincode = "12345";
-    private String date = "2025-03-29";
-    private LocalDate requestedDate = LocalDate.parse(date);
+    private final String pincode = "12345";
+    private final String date = "2025-03-29";
+    private final LocalDate requestedDate = LocalDate.parse(date);
 
     private WeatherInfo weatherInfo;
     private PincodeInfo pincodeInfo;
