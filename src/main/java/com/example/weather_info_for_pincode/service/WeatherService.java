@@ -27,14 +27,17 @@ public class WeatherService implements IWeatherService{
     @Autowired
     private PincodeRepository pincodeRepository;
 
+    private RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${api.key}")
+    public WeatherService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    @Value("${GEOCODE_API_URL}")
     private String GEOCODE_API_URL;
 
-    @Value("${WEATHER_API_URL.key }")
+    @Value("${WEATHER_API_URL}")
     private String WEATHER_API_URL;
-
-    private final RestTemplate restTemplate = new RestTemplate();
 
     public Optional<WeatherInfo> getExistingWeather(String pincode, LocalDate date) {
         return weatherRepository.findByPincodeAndDate(pincode, date);
@@ -82,7 +85,7 @@ public class WeatherService implements IWeatherService{
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             System.out.println(response.getBody());
             ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode weatherData = objectMapper.readTree(response.getBody());// Convert raw JSON string to JsonNode
+            JsonNode weatherData = objectMapper.readTree(response.getBody());
             WeatherInfo weather = new WeatherInfo(pincode, date, weatherData);
             weatherRepository.save(weather);
             return weather;
